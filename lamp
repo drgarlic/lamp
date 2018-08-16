@@ -24,7 +24,7 @@
 LC_ALL=C
 LANG=C
 
-mode=2
+mode=1
 
 # ---
 # LOCAL
