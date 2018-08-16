@@ -1,102 +1,47 @@
 #!/usr/bin/env bash
 #
-#   \|/  ||     /|| |\/|| ||''.
-#  - o - ||    /-|| |  || ||--'
-#   /|\  ||_| /  || |  || ||
+#   \|/   '||     ^   ||\/| ||''.
+#  - o -   ||    //\  ||  | ||--'
+#   /|\   .||_| //''\ ||  | ||
 #
-# Description: A simple script that makes the focused terminal look brighter
-# Dependencies: art, wmctrl, xdpyinfo
-# Author: gawlk
+# Description:              Deamon-less terminal effect manager
+# Dependencies:             art, wmctrl, xdpyinfo
+# Optionnal dependencies:   none
+# Author:                   gawlk
+# Contributors:             none
 
 # ---
-# VARS
-# ---
-colors="${HOME}/.colors"
-
-gry=$(grep "gry" "$colors" | awk '{ print $3 }')
-red=$(grep "red" "$colors" | awk '{ print $3 }')
-grn=$(grep "grn" "$colors" | awk '{ print $3 }')
-blu=$(grep "blu" "$colors" | awk '{ print $3 }')
-wht=$(grep "wht" "$colors" | awk '{ print $3 }')
-
-ctheme=$(cat ${HOME}/.colors | head -2 | tail -1 | cut -d" " -f2)
-
-val=32
-
-# ---
-# CONVERTERS
+# IMPORTS
 # ---
 
-hex_to_rgb() {
-    # Each part of the color in [0-255]
-    R=$(( 16#${1:1:2} ))
-    G=$(( 16#${1:3:2} ))
-    B=$(( 16#${1:5:2} ))
-}
-
-rgb_to_hex() {
-    hex=$(printf "#%02X%02X%02X" "$R" "$G" "$B")
-    echo "${hex,,}"
-}
+. art-api
 
 # ---
-# SEQUENCES
+# SETUP
 # ---
 
-set_special() {
-    sequences+="\033]${1};${2}\007"
-}
+# Disable unicode.
+LC_ALL=C
+LANG=C
 
-set_color() {
-    sequences+="\033]4;${1};${2}\007"
-}
-
-set_sequences() {
-    sequences=
-
-    # spe
-    set_special 10  "$wht"
-    set_special 12  "$wht"
-    set_special 13  "$wht"
-
-    # gry
-    set_color 8  "$gry"
-    
-    # red
-    set_color 1  "$red"
-    set_color 5  "$red"
-    set_color 9  "$red"
-    set_color 13 "$red"
-    
-    # grn
-    set_color 2  "$grn"
-    set_color 3  "$grn"
-    set_color 10 "$grn"
-    set_color 11 "$grn"
-    
-    # blu
-    set_color 4  "$blu"
-    set_color 6  "$blu"
-    set_color 12 "$blu"
-    set_color 14 "$blu"
-
-    # wht
-    set_color 7  "$wht"
-    set_color 15 "$wht"
-}
+mode=2
 
 # ---
-# UNFOCUSED
+# LOCAL
 # ---
 
-unfocus_color() {
-    hex_to_rgb "$1"
-    
-    [[ "$ctheme" == "dark" ]] && val=$(( - val ))
+lamp.unfocus_color() {
+    local colors=( $( pure.hex_to_rgb "$1" ) )
+    local R="${colors[0]}"
+    local G="${colors[1]}"
+    local B="${colors[2]}"
+
+    local value=$2
+    [[ "$3" == "dark" ]] && value=$(( - value ))
    
-    (( R += val ))
-    (( G += val ))
-    (( B += val ))
+    (( R += value ))
+    (( G += value ))
+    (( B += value ))
     
     [[ $R -lt 0 ]] && R=0
     [[ $G -lt 0 ]] && G=0
@@ -105,13 +50,13 @@ unfocus_color() {
     [[ $G -gt 255 ]] && G=255
     [[ $B -gt 255 ]] && B=255
 
-    rgb_to_hex
+    pure.rgb_to_hex "$R" "$G" "$B"
 }
 
-update_unfocused() {
-    for term in /dev/pts/[0-9]*
+lamp.update_terminals() {
+    for term in "/dev/pts/"[0-9]*
     do  
-        [[ -w "$term" ]] && [[ "$term" != "$focused" ]] && printf "%b" "$sequences" > "$term" &
+        [[ -w "$term" ]] && [[ "$term" != "$1" ]] && ( printf "%b" "$2" > "$term" & )
     done
 }
 
@@ -119,32 +64,65 @@ update_unfocused() {
 # MAIN
 # ---
 
-main() {
+lamp.main() {
     # Get id of the focused window
-    id=$(xdpyinfo | grep -Eo 'window 0x[^,]+' | cut -d" " -f2 | cut -c 3-)
+    local focused_id=$( xdpyinfo | grep -Eo 'window 0x[^,]+' | cut -d" " -f2 | cut -c 3- )
 
     # Check if the focused window is a terminal
-    focused=$(wmctrl -l | grep "${id}.*/dev/pts/" | awk '{ print $4 }')
+    local focused_dev_pts=$( wmctrl -l | grep "${focused_id}.*/dev/pts/" | awk '{ print $4 }' )
 
     # If it is a terminal
-    if [[ -n "$focused" ]]
+    if [[ -n "$focused_dev_pts" ]]
     then
-        # Set normal colors to it
-        set_sequences
-        printf "%b" "$sequences" > "$focused" &
+        case "$mode" in
+            "1")
+                local colors=( $( art-api.get_colors ) )
+                
+                local sequences=$( setters.sequences ${colors[@]} )
 
-        # Generate unfosed colors
-        gry=$(unfocus_color "$gry")
-        red=$(unfocus_color "$red")
-        grn=$(unfocus_color "$grn")
-        blu=$(unfocus_color "$blu")
-        (( val *= 2 ))
-        wht=$(unfocus_color "$wht")
-        
-        # Update unfocused terminals
-        set_sequences
-        update_unfocused
+                printf "%b" "$sequences" > $focused_dev_pts &
+
+                local brightness=$( art-api.get_brightness )
+
+                # Generate unfosed colors
+                local value=32
+                local blk="${colors[0]}"
+                local gry=$( lamp.unfocus_color "${colors[1]}" $value "$brightness" )
+                local red=$( lamp.unfocus_color "${colors[2]}" $value "$brightness" )
+                local grn=$( lamp.unfocus_color "${colors[3]}" $value "$brightness" )
+                local blu=$( lamp.unfocus_color "${colors[4]}" $value "$brightness" )
+                (( value *= 2 ))
+                local wht=$( lamp.unfocus_color "${colors[5]}" $value "$brightness" )
+                
+                # Update unfocused terminals
+                sequences=$( setters.sequences "$blk" "$gry" "$red" "$grn" "$blu" "$wht" )
+
+                lamp.update_terminals "$focused_dev_pts" "$sequences"
+            ;;
+            "2")
+                local theme=$( art-api.get_theme )
+                local brightness=$( art-api.get_brightness )
+                [[ "$brightness" == "dark" ]] && brightness="light" || brightness="dark"
+
+                local colors=( $( art-api.get_colors ) )
+
+                local sequences=$( setters.sequences ${colors[@]} )
+
+                printf "%b" "$sequences" > "$focused_dev_pts" &
+
+                [[ "$brightness" == "dark" ]] && brightness="light" || brightness="dark"
+                colors=( $( art-api.get_colors ) )
+
+                sequences=$( setters.sequences ${colors[@]} )
+
+                lamp.update_terminals "$focused_dev_pts" "$sequences"
+            ;;
+        esac
     fi
 }
 
-main
+# ---
+# LAUNCH
+# ---
+
+lamp.main
