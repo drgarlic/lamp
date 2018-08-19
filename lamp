@@ -15,7 +15,7 @@
 # ---
 #
 # - More otpions
-# - Figure out how to cache the results
+# - Figure out a way to cache the results
 
 # ---
 # IMPORTS
@@ -31,13 +31,13 @@
 LC_ALL=C
 LANG=C
 
-mode=2
+mode=4
 
 # ---
 # LOCAL
 # ---
 
-lamp.unfocus_color() {
+lamp.mode1_unfocus_color() {
     local colors=( $( pure.hex_to_rgb "$1" ) )
     local R="${colors[0]}"
     local G="${colors[1]}"
@@ -58,6 +58,12 @@ lamp.unfocus_color() {
     [[ $B -gt 255 ]] && B=255
 
     pure.rgb_to_hex "$R" "$G" "$B"
+}
+
+lamp.mode4_unfocus_color() {
+    local color_in_hsv=( $( converters.hex_to_hsv "$1" ) )
+
+    converters.hsv_to_hex "${color_in_hsv[0]}" "0" "${color_in_hsv[2]}"
 }
 
 lamp.update_terminals() {
@@ -83,6 +89,8 @@ lamp.main() {
     then
         case "$mode" in
             1 )
+                # Highlight mode
+
                 local colors=( $( art-api.get_colors ) )
                 
                 local sequences=$( setters.sequences ${colors[@]} )
@@ -94,12 +102,12 @@ lamp.main() {
                 # Generate unfosed colors
                 local value=32
                 local blk="${colors[0]}"
-                local gry=$( lamp.unfocus_color "${colors[1]}" $value "$brightness" )
-                local red=$( lamp.unfocus_color "${colors[2]}" $value "$brightness" )
-                local grn=$( lamp.unfocus_color "${colors[3]}" $value "$brightness" )
-                local blu=$( lamp.unfocus_color "${colors[4]}" $value "$brightness" )
+                local gry=$( lamp.mode1_unfocus_color "${colors[1]}" $value "$brightness" )
+                local red=$( lamp.mode1_unfocus_color "${colors[2]}" $value "$brightness" )
+                local grn=$( lamp.mode1_unfocus_color "${colors[3]}" $value "$brightness" )
+                local blu=$( lamp.mode1_unfocus_color "${colors[4]}" $value "$brightness" )
                 (( value *= 2 ))
-                local wht=$( lamp.unfocus_color "${colors[5]}" $value "$brightness" )
+                local wht=$( lamp.mode1_unfocus_color "${colors[5]}" $value "$brightness" )
                 
                 # Update unfocused terminals
                 sequences=$( setters.sequences "$blk" "$gry" "$red" "$grn" "$blu" "$wht" )
@@ -107,6 +115,8 @@ lamp.main() {
                 lamp.update_terminals "$focused_dev_pts" "$sequences"
             ;;
             2 )
+                # Yin yang mode
+
                 local theme=$( art-api.get_theme )
                 local brightness=$( art-api.get_brightness )
                 [[ "$brightness" == "dark" ]] && brightness="light" || brightness="dark"
@@ -125,6 +135,8 @@ lamp.main() {
                 lamp.update_terminals "$focused_dev_pts" "$sequences"
             ;;
             3 )
+                # Stealth mode
+
                 local colors=( $( art-api.get_colors ) )
                 
                 local sequences=$( setters.sequences ${colors[@]} )
@@ -137,6 +149,28 @@ lamp.main() {
                 local grn="${colors[0]}"
                 local blu="${colors[0]}"
                 local wht="${colors[0]}"
+                
+                # Update unfocused terminals
+                sequences=$( setters.sequences "$blk" "$gry" "$red" "$grn" "$blu" "$wht" )
+
+                lamp.update_terminals "$focused_dev_pts" "$sequences"
+            ;;
+            4 )
+                # Black & white mode
+
+                local colors=( $( art-api.get_colors ) )
+                
+                local sequences=$( setters.sequences ${colors[@]} )
+
+                printf "%b" "$sequences" > $focused_dev_pts &
+
+                # Generate unfosed colors
+                local blk=$( lamp.mode4_unfocus_color "${colors[0]}" )
+                local gry=$( lamp.mode4_unfocus_color "${colors[1]}" )
+                local red=$( lamp.mode4_unfocus_color "${colors[2]}" )
+                local grn=$( lamp.mode4_unfocus_color "${colors[3]}" )
+                local blu=$( lamp.mode4_unfocus_color "${colors[4]}" )
+                local wht=$( lamp.mode4_unfocus_color "${colors[5]}" )
                 
                 # Update unfocused terminals
                 sequences=$( setters.sequences "$blk" "$gry" "$red" "$grn" "$blu" "$wht" )
