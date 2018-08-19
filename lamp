@@ -4,11 +4,18 @@
 #  - o -   ||    //\  ||  | ||--'
 #   /|\   .||_| //''\ ||  | ||
 #
-# Description:              Deamon-less terminal effect manager
+# Description:              A deamon-less terminal effect manager
 # Dependencies:             art, wmctrl, xdpyinfo
 # Optionnal dependencies:   none
 # Author:                   gawlk
 # Contributors:             none
+
+# ---
+# TODO
+# ---
+#
+# - More otpions
+# - Figure out how to cache the results
 
 # ---
 # IMPORTS
@@ -24,7 +31,7 @@
 LC_ALL=C
 LANG=C
 
-mode=1
+mode=2
 
 # ---
 # LOCAL
@@ -75,7 +82,7 @@ lamp.main() {
     if [[ -n "$focused_dev_pts" ]]
     then
         case "$mode" in
-            "1")
+            1 )
                 local colors=( $( art-api.get_colors ) )
                 
                 local sequences=$( setters.sequences ${colors[@]} )
@@ -99,7 +106,7 @@ lamp.main() {
 
                 lamp.update_terminals "$focused_dev_pts" "$sequences"
             ;;
-            "2")
+            2 )
                 local theme=$( art-api.get_theme )
                 local brightness=$( art-api.get_brightness )
                 [[ "$brightness" == "dark" ]] && brightness="light" || brightness="dark"
@@ -114,6 +121,25 @@ lamp.main() {
                 colors=( $( art-api.get_colors ) )
 
                 sequences=$( setters.sequences ${colors[@]} )
+
+                lamp.update_terminals "$focused_dev_pts" "$sequences"
+            ;;
+            3 )
+                local colors=( $( art-api.get_colors ) )
+                
+                local sequences=$( setters.sequences ${colors[@]} )
+
+                printf "%b" "$sequences" > $focused_dev_pts &
+
+                local blk="${colors[0]}"
+                local gry="${colors[0]}"
+                local red="${colors[0]}"
+                local grn="${colors[0]}"
+                local blu="${colors[0]}"
+                local wht="${colors[0]}"
+                
+                # Update unfocused terminals
+                sequences=$( setters.sequences "$blk" "$gry" "$red" "$grn" "$blu" "$wht" )
 
                 lamp.update_terminals "$focused_dev_pts" "$sequences"
             ;;
