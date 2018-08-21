@@ -16,6 +16,10 @@
 #
 # - More otpions
 # - Figure out a way to cache the results
+# - Add arguments (-m/-mode)
+# - Find a better way to determined which terminal is being focused
+# - If the cache is conclusive make a multimode option
+# - Mode: increase hue over window change
 
 # ---
 # IMPORTS
@@ -31,33 +35,61 @@
 LC_ALL=C
 LANG=C
 
-mode=4
+mode=1
+cach_file="${cnf_dir}/lamp.cache"
 
 # ---
 # LOCAL
 # ---
 
+lamp.gen_cach_file() {
+    local mode="$mode"
+    local theme="$1"
+    local brightness="$2"
+
+    local unf_blk="$3"
+    local unf_gry="$4"
+    local unf_red="$5"
+    local unf_grn="$6"
+    local unf_blu="$7"
+    local unf_wht="$8"
+
+    local fcs_blk="$9"
+    local fcs_gry="$10"
+    local fcs_red="$11"
+    local fcs_grn="$12"
+    local fcs_blu="$13"
+    local fcs_wht="$14"
+
+    printf '%s\n'   "[global]"                         > "$cach_file"
+    printf '%s\n'   "    mode = ${mode}"              >> "$cach_file"
+    printf '%s\n'   "    theme = ${theme}"            >> "$cach_file"
+    printf '%s\n\n' "    brightness = ${brightness}"  >> "$cach_file"
+
+    printf '%s\n'   "[colors]"                        >> "$cach_file"
+    printf '%s\n'   "    unf_blk = ${unf_blk}"        >> "$cach_file"
+    printf '%s\n'   "    unf_gry = ${unf_gry}"        >> "$cach_file"
+    printf '%s\n'   "    unf_red = ${unf_red}"        >> "$cach_file"
+    printf '%s\n'   "    unf_grn = ${unf_grn}"        >> "$cach_file"
+    printf '%s\n'   "    unf_blu = ${unf_blu}"        >> "$cach_file"
+    printf '%s\n\n' "    unf_wht = ${unf_wht}"        >> "$cach_file"
+
+    printf '%s\n'   "    fcs_blk = ${fcs_blk}"        >> "$cach_file"
+    printf '%s\n'   "    fcs_gry = ${fcs_gry}"        >> "$cach_file"
+    printf '%s\n'   "    fcs_red = ${fcs_red}"        >> "$cach_file"
+    printf '%s\n'   "    fcs_grn = ${fcs_grn}"        >> "$cach_file"
+    printf '%s\n'   "    fcs_blu = ${fcs_blu}"        >> "$cach_file"
+    printf '%s\n\n' "    fcs_wht = ${fcs_wht}"        >> "$cach_file"
+}
+
 lamp.mode1_unfocus_color() {
-    local colors=( $( pure.hex_to_rgb "$1" ) )
-    local R="${colors[0]}"
-    local G="${colors[1]}"
-    local B="${colors[2]}"
+    local color_in_hsv=( $( converters.hex_to_hsv "$1" ) )
+    local V=${color_in_hsv[2]}
+    (( V += value ))
+    [[ $V -lt 0 ]] && V=0
+    [[ $V -gt 1000 ]] && V=1000
 
-    local value=$2
-    [[ "$3" == "dark" ]] && value=$(( - value ))
-   
-    (( R += value ))
-    (( G += value ))
-    (( B += value ))
-    
-    [[ $R -lt 0 ]] && R=0
-    [[ $G -lt 0 ]] && G=0
-    [[ $B -lt 0 ]] && B=0
-    [[ $R -gt 255 ]] && R=255
-    [[ $G -gt 255 ]] && G=255
-    [[ $B -gt 255 ]] && B=255
-
-    pure.rgb_to_hex "$R" "$G" "$B"
+    converters.hsv_to_hex "${color_in_hsv[0]}" "${color_in_hsv[1]}" "$V"
 }
 
 lamp.mode4_unfocus_color() {
@@ -100,7 +132,7 @@ lamp.main() {
                 local brightness=$( art-api.get_brightness )
 
                 # Generate unfosed colors
-                local value=32
+                local value=200
                 local blk="${colors[0]}"
                 local gry=$( lamp.mode1_unfocus_color "${colors[1]}" $value "$brightness" )
                 local red=$( lamp.mode1_unfocus_color "${colors[2]}" $value "$brightness" )
