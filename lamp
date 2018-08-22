@@ -14,7 +14,7 @@
 # TODO
 # ---
 #
-# - More options
+# - Add more options
 # - Find a better way to determined which terminal is being focused
 
 # ---
@@ -93,7 +93,7 @@ lamp.gen_cach_file() {
     local brightness="$( art-api.get_brightness )"
 
     printf '%s\n'   "[global]"                         > "$cach_file"
-    printf '%s\n\n' "    modes = ${modes}"              >> "$cach_file"
+    printf '%s\n\n' "    modes = ${modes}"            >> "$cach_file"
 
     printf '%s\n'   "[art]"                           >> "$cach_file"
     printf '%s\n'   "    theme = ${theme}"            >> "$cach_file"
@@ -168,11 +168,9 @@ lamp.update_unfocused_terminals() {
 
 lamp.main() {
     # Check if the focused window is a terminal
-    local focused_dev_pts="$( xdotool getwindowfocus getwindowname )"
+    local focused_window="$( xdotool getwindowfocus getwindowname )"
 
-    # TO EDIT: load at each window change
-    # If it is indeed a terminal
-    if [[ -n "$focused_dev_pts" ]]
+    if [[ -n "$focused_window" ]]
     then
         lamp.arguments
 
@@ -259,11 +257,11 @@ lamp.main() {
             
         # Update the focused terminals
         local sequences="$( printf "\\033]10;${fcs_colors[5]}\\007\\033]11;${fcs_colors[0]}\\007\\033]12;${fcs_colors[5]}\\007\\033]13;${fcs_colors[5]}\\007\\033]14;${fcs_colors[0]}\\007\\033]708;${fcs_colors[0]}\\007\\033]4;0;${fcs_colors[0]}\\007\\033]4;8;${fcs_colors[1]}\\007\\033]4;1;${fcs_colors[2]}\\007\\033]4;5;${fcs_colors[2]}\\007\\033]4;9;${fcs_colors[2]}\\007\\033]4;13;${fcs_colors[2]}\\007\\033]4;2;${fcs_colors[3]}\\007\\033]4;3;${fcs_colors[3]}\\007\\033]4;10;${fcs_colors[3]}\\007\\033]4;11;${fcs_colors[3]}\\007\\033]4;4;${fcs_colors[4]}\\007\\033]4;6;${fcs_colors[4]}\\007\\033]4;12;${fcs_colors[4]}\\007\\033]4;14;${fcs_colors[4]}\\007\\033]4;7;${fcs_colors[5]}\\007\\033]4;15;${fcs_colors[5]}\\007\\033]4;66;${fcs_colors[0]}\\007" )"
-        printf '%b' "$sequences" > "$focused_dev_pts" &
+        printf '%b' "$sequences" > "$focused_window" &
 
         # Update unfocused terminals
         sequences="$( printf "\\033]10;${unf_colors[5]}\\007\\033]11;${unf_colors[0]}\\007\\033]12;${unf_colors[5]}\\007\\033]13;${unf_colors[5]}\\007\\033]14;${unf_colors[0]}\\007\\033]708;${unf_colors[0]}\\007\\033]4;0;${unf_colors[0]}\\007\\033]4;8;${unf_colors[1]}\\007\\033]4;1;${unf_colors[2]}\\007\\033]4;5;${unf_colors[2]}\\007\\033]4;9;${unf_colors[2]}\\007\\033]4;13;${unf_colors[2]}\\007\\033]4;2;${unf_colors[3]}\\007\\033]4;3;${unf_colors[3]}\\007\\033]4;10;${unf_colors[3]}\\007\\033]4;11;${unf_colors[3]}\\007\\033]4;4;${unf_colors[4]}\\007\\033]4;6;${unf_colors[4]}\\007\\033]4;12;${unf_colors[4]}\\007\\033]4;14;${unf_colors[4]}\\007\\033]4;7;${unf_colors[5]}\\007\\033]4;15;${unf_colors[5]}\\007\\033]4;66;${unf_colors[0]}\\007" )"
-        lamp.update_unfocused_terminals "$focused_dev_pts" "$sequences"
+        lamp.update_unfocused_terminals "$focused_window" "$sequences"
     fi
 }
 
