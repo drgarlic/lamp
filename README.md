@@ -13,14 +13,17 @@
 
 #### .bashrc
 
-Add this lines to your .bashrc (or any other shell run commands file).
+Add this lines to your `.bashrc` (or any other shell run commands file):
 
 ```bash
 # Set title of the window (used in lamp)
 PROMPT_COMMAND='echo -en "\033]0;$(tty)\007"'
 DISABLE_AUTO_TITLE=true
 ```
+
 #### lamp
+
+Add `lamp` to your `PATH`:
 
 ```bash
 cd WHEREVER_YOU_WANT
@@ -31,11 +34,38 @@ echo "PATH="${PATH}:$( pwd )" >> ${HOME}/.bashrc
 
 #### Window Manager
 
-Now the hardest part, to be continued...
+Now the hardest part, `lamp` **is deamon-less**, which means it has to be ran each time a new window is being focused.
+
+Some may disagree but it was a clear choice from the start, feel free to make a deamon if want !
+
+So the idea is to configuration file of your WM and make it run `lamp` everytime you:
+- open a terminal
+- kill a window
+- focus a window
+- change the workspace
+
+Here are examples, which illustrates how it can be done for:
+- [2bwm](https://github.com/gawlk/dots/blob/master/2bwm/config.h)
+- [Bspwm](https://github.com/gawlk/dots/blob/master/sxhkd/sxhkdrc)
+
+Unfortunently, if your WM supports mouse events and you can't or don't want to disable them, you might have undesired results like not having `lamp` launched when a window is being focused.
+
+I had a situation like that with `2bwm`, which focuses every window that happens to be under the mouse pointer. Since this option can't be disable without changing the source code, I decided to change it and make instead 2bwm [launch `lamp` everytime the focus is set](https://github.com/gawlk/dots/blob/master/2bwm/2bwm.c?utf8=%E2%9C%93#L1632).
+
+I understand that this may not be practical for everybody but there is no other way without a deamon.
 
 ## How to use ?
 
-TODO
+```
+lamp - A deamon-less terminal effect manager
+
+Example: lamp -m "4+2+1"
+
+Arguments:
+(none)                  Launch lamp
+-h | -help              Display this menu and exit
+-m | -modes "number"    Set a different mode or modes to load
+```
 
 ## TODO
 
