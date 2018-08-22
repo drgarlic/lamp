@@ -5,7 +5,7 @@
 #   /|\   .||_| //''\ ||  | ||
 #
 # Description:              A deamon-less terminal effect manager
-# Dependencies:             art, wmctrl, xdpyinfo
+# Dependencies:             art, xdotool
 # Optionnal dependencies:   none
 # Author:                   gawlk
 # Contributors:             none
@@ -14,12 +14,11 @@
 # TODO
 # ---
 #
-# - More otpions
-# - Figure out a way to cache the results
-# - Add arguments (-m/-mode)
+# - More options
 # - Find a better way to determined which terminal is being focused
 # - If the cache is conclusive make a multimode option
 # - Mode: increase hue over window change
+# - Mode: random theme
 
 # ---
 # IMPORTS
@@ -35,56 +34,96 @@
 LC_ALL=C
 LANG=C
 
-mode=1
-cach_file="${cnf_dir}/lamp.cache"
+# Get all arguments
+args=( $@ )
+
+# Get the number of arguments
+nb_args="$#"
+
+# Global variables
+refresh=false
+cach_file="${cnf_dir}/.lamp.cache"
+mode=""
+fcs_colors=( )
+unf_colors=( )
 
 # ---
 # LOCAL
 # ---
 
+lamp.arguments() {
+    local i=0 
+
+    # Loop that will go through each and every argument
+    while [[ $i != $nb_args ]]
+    do
+        case "${args[$i]}" in
+            "-m" | "-mode" )
+                # Choose the mode to load
+
+                (( i++ ))
+                checkers.is_argument_s_value "${args[$i]}" || log.error "lamp" "Please provide correct values to arguments."
+
+                mode="${args[$i]}"
+                ! [[ "$mode" =~ ^[0-9]+$ ]] && log.error "lamp" "Please provide correct values to arguments."
+            ;;
+            "-h" | "-help" )
+                # Display a helping text and exit
+                
+                printf '\n%s\n\n'   "lamp - A deamon-less terminal effect manager"
+
+                printf '%s\n'     "Arguments:"
+                printf '%s\n'     "(none)       Launch lamp"
+                printf '%s\n'     "-h | -help   Display this menu and exit"
+                printf '%s\n\n'   "-m | -mode   Set a different mode to load"
+
+                exit 0
+            ;;
+            * )
+                # Display an error on invalid arguments
+
+                log.error "lamp" "Invalid argument, please try again\n$( lamp -h )"
+            ;;
+        esac
+
+        (( i++ ))
+    done
+}
+
 lamp.gen_cach_file() {
-    local mode="$mode"
-    local theme="$1"
-    local brightness="$2"
-
-    local unf_blk="$3"
-    local unf_gry="$4"
-    local unf_red="$5"
-    local unf_grn="$6"
-    local unf_blu="$7"
-    local unf_wht="$8"
-
-    local fcs_blk="$9"
-    local fcs_gry="$10"
-    local fcs_red="$11"
-    local fcs_grn="$12"
-    local fcs_blu="$13"
-    local fcs_wht="$14"
+    local theme="$( art-api.get_theme )"
+    local brightness="$( art-api.get_brightness )"
 
     printf '%s\n'   "[global]"                         > "$cach_file"
-    printf '%s\n'   "    mode = ${mode}"              >> "$cach_file"
+    printf '%s\n\n' "    mode = ${mode}"              >> "$cach_file"
+
+    printf '%s\n'   "[art]"                           >> "$cach_file"
     printf '%s\n'   "    theme = ${theme}"            >> "$cach_file"
     printf '%s\n\n' "    brightness = ${brightness}"  >> "$cach_file"
 
     printf '%s\n'   "[colors]"                        >> "$cach_file"
-    printf '%s\n'   "    unf_blk = ${unf_blk}"        >> "$cach_file"
-    printf '%s\n'   "    unf_gry = ${unf_gry}"        >> "$cach_file"
-    printf '%s\n'   "    unf_red = ${unf_red}"        >> "$cach_file"
-    printf '%s\n'   "    unf_grn = ${unf_grn}"        >> "$cach_file"
-    printf '%s\n'   "    unf_blu = ${unf_blu}"        >> "$cach_file"
-    printf '%s\n\n' "    unf_wht = ${unf_wht}"        >> "$cach_file"
+    printf '%s\n'   "    fcs_blk = ${fcs_colors[0]}"  >> "$cach_file"
+    printf '%s\n'   "    fcs_gry = ${fcs_colors[1]}"  >> "$cach_file"
+    printf '%s\n'   "    fcs_red = ${fcs_colors[2]}"  >> "$cach_file"
+    printf '%s\n'   "    fcs_grn = ${fcs_colors[3]}"  >> "$cach_file"
+    printf '%s\n'   "    fcs_blu = ${fcs_colors[4]}"  >> "$cach_file"
+    printf '%s\n\n' "    fcs_wht = ${fcs_colors[5]}"  >> "$cach_file"
 
-    printf '%s\n'   "    fcs_blk = ${fcs_blk}"        >> "$cach_file"
-    printf '%s\n'   "    fcs_gry = ${fcs_gry}"        >> "$cach_file"
-    printf '%s\n'   "    fcs_red = ${fcs_red}"        >> "$cach_file"
-    printf '%s\n'   "    fcs_grn = ${fcs_grn}"        >> "$cach_file"
-    printf '%s\n'   "    fcs_blu = ${fcs_blu}"        >> "$cach_file"
-    printf '%s\n\n' "    fcs_wht = ${fcs_wht}"        >> "$cach_file"
+    printf '%s\n'   "    unf_blk = ${unf_colors[0]}"  >> "$cach_file"
+    printf '%s\n'   "    unf_gry = ${unf_colors[1]}"  >> "$cach_file"
+    printf '%s\n'   "    unf_red = ${unf_colors[2]}"  >> "$cach_file"
+    printf '%s\n'   "    unf_grn = ${unf_colors[3]}"  >> "$cach_file"
+    printf '%s\n'   "    unf_blu = ${unf_colors[4]}"  >> "$cach_file"
+    printf '%s\n'   "    unf_wht = ${unf_colors[5]}"  >> "$cach_file"
 }
 
 lamp.mode1_unfocus_color() {
     local color_in_hsv=( $( converters.hex_to_hsv "$1" ) )
-    local V=${color_in_hsv[2]}
+    
+    local value="$2"
+    [[ "$3" == "dark" ]] && value=$(( - value ))
+
+    local V="${color_in_hsv[2]}"
     (( V += value ))
     [[ $V -lt 0 ]] && V=0
     [[ $V -gt 1000 ]] && V=1000
@@ -98,7 +137,27 @@ lamp.mode4_unfocus_color() {
     converters.hsv_to_hex "${color_in_hsv[0]}" "0" "${color_in_hsv[2]}"
 }
 
-lamp.update_terminals() {
+lamp.read_colors() {
+    fcs_colors=( $( initiators.read_line "$cach_file" "fcs_[a-z]{3}" ) )
+
+    unf_colors=( $( initiators.read_line "$cach_file" "unf_[a-z]{3}" ) )
+}
+
+lamp.read_conf() {
+    local old_theme="$( initiators.read_line "$cach_file" "theme" )"
+    local old_brightness="$( initiators.read_line "$cach_file" "brightness" )"
+
+    local theme="$( art-api.get_theme )"
+    [[ -z "$theme" ]] && log.error "lamp" "Invalid theme in art's configuration file."
+    local brightness="$( art-api.get_brightness )"
+    [[ -z "$brightness" ]] && log.error "lamp" "Invalid brightness in art's configuration file."
+
+    [[ -n "$mode" || "$theme" != "$old_theme" || "$brightness" != "$old_brightness" ]] && refresh=true
+
+    [[ -z "$mode" ]] && mode="$( initiators.read_line "$cach_file" "mode" )"
+}
+
+lamp.update_unfocused_terminals() {
     for term in "/dev/pts/"[0-9]*
     do  
         [[ -w "$term" ]] && [[ "$term" != "$1" ]] && ( printf "%b" "$2" > "$term" & )
@@ -110,106 +169,99 @@ lamp.update_terminals() {
 # ---
 
 lamp.main() {
-    # Get id of the focused window
-    local focused_id=$( xdpyinfo | grep -Eo 'window 0x[^,]+' | cut -d" " -f2 | cut -c 3- )
-
     # Check if the focused window is a terminal
-    local focused_dev_pts=$( wmctrl -l | grep "${focused_id}.*/dev/pts/" | awk '{ print $4 }' )
+    local focused_dev_pts="$( xdotool getwindowfocus getwindowname )"
 
-    # If it is a terminal
+    # TO EDIT: load at each window change
+    # If it is indeed a terminal
     if [[ -n "$focused_dev_pts" ]]
     then
-        case "$mode" in
-            1 )
-                # Highlight mode
+        lamp.arguments
 
-                local colors=( $( art-api.get_colors ) )
-                
-                local sequences=$( setters.sequences ${colors[@]} )
+        lamp.read_conf
+        
+        if [[ "$refresh" == true ]]
+        then
+            ! [[ "$mode" =~ ^[0-9]+$ ]] && mode=0
 
-                printf "%b" "$sequences" > $focused_dev_pts &
+            local theme="$( art-api.get_theme )"
+            local brightness="$( art-api.get_brightness )"
 
-                local brightness=$( art-api.get_brightness )
+            case "$mode" in
+                "0" )
+                    # Normal mode
 
-                # Generate unfosed colors
-                local value=200
-                local blk="${colors[0]}"
-                local gry=$( lamp.mode1_unfocus_color "${colors[1]}" $value "$brightness" )
-                local red=$( lamp.mode1_unfocus_color "${colors[2]}" $value "$brightness" )
-                local grn=$( lamp.mode1_unfocus_color "${colors[3]}" $value "$brightness" )
-                local blu=$( lamp.mode1_unfocus_color "${colors[4]}" $value "$brightness" )
-                (( value *= 2 ))
-                local wht=$( lamp.mode1_unfocus_color "${colors[5]}" $value "$brightness" )
-                
-                # Update unfocused terminals
-                sequences=$( setters.sequences "$blk" "$gry" "$red" "$grn" "$blu" "$wht" )
+                    fcs_colors=( $( art-api.get_colors ) )
 
-                lamp.update_terminals "$focused_dev_pts" "$sequences"
-            ;;
-            2 )
-                # Yin yang mode
+                    unf_colors=( ${fcs_colors[@]} )
+                ;;
+                "1" )
+                    # Highlight mode
 
-                local theme=$( art-api.get_theme )
-                local brightness=$( art-api.get_brightness )
-                [[ "$brightness" == "dark" ]] && brightness="light" || brightness="dark"
+                    fcs_colors=( $( art-api.get_colors ) )
 
-                local colors=( $( art-api.get_colors ) )
+                    # Generate unfocused colors
+                    local value=200
+                    local unf_blk="${fcs_colors[0]}"
+                    local unf_gry="$( lamp.mode1_unfocus_color "${fcs_colors[1]}" "$value" "$brightness" )"
+                    local unf_red="$( lamp.mode1_unfocus_color "${fcs_colors[2]}" "$value" "$brightness" )"
+                    local unf_grn="$( lamp.mode1_unfocus_color "${fcs_colors[3]}" "$value" "$brightness" )"
+                    local unf_blu="$( lamp.mode1_unfocus_color "${fcs_colors[4]}" "$value" "$brightness" )"
+                    (( value *= 2 ))
+                    local unf_wht="$( lamp.mode1_unfocus_color "${fcs_colors[5]}" "$value" "$brightness" )"
 
-                local sequences=$( setters.sequences ${colors[@]} )
+                    unf_colors=( "$unf_blk" "$unf_gry" "$unf_red" "$unf_grn" "$unf_blu" "$unf_wht" )
+                ;;
+                "2" )
+                    # Yin yang mode
 
-                printf "%b" "$sequences" > "$focused_dev_pts" &
+                    unf_colors=( $( art-api.get_colors ) )
 
-                [[ "$brightness" == "dark" ]] && brightness="light" || brightness="dark"
-                colors=( $( art-api.get_colors ) )
+                    [[ "$brightness" == "dark" ]] && brightness="light" || brightness="dark"
 
-                sequences=$( setters.sequences ${colors[@]} )
+                    fcs_colors=( $( art-api.get_colors ) )
+                ;;
+                "3" )
+                    # Stealth mode
 
-                lamp.update_terminals "$focused_dev_pts" "$sequences"
-            ;;
-            3 )
-                # Stealth mode
+                    fcs_colors=( $( art-api.get_colors ) )
 
-                local colors=( $( art-api.get_colors ) )
-                
-                local sequences=$( setters.sequences ${colors[@]} )
+                    local blk="${fcs_colors[0]}"
 
-                printf "%b" "$sequences" > $focused_dev_pts &
+                    unf_colors=( "$blk" "$blk" "$blk" "$blk" "$blk" "$blk" )
+                ;;
+                "4" )
+                    # Black & white mode
 
-                local blk="${colors[0]}"
-                local gry="${colors[0]}"
-                local red="${colors[0]}"
-                local grn="${colors[0]}"
-                local blu="${colors[0]}"
-                local wht="${colors[0]}"
-                
-                # Update unfocused terminals
-                sequences=$( setters.sequences "$blk" "$gry" "$red" "$grn" "$blu" "$wht" )
+                    fcs_colors=( $( art-api.get_colors ) )
 
-                lamp.update_terminals "$focused_dev_pts" "$sequences"
-            ;;
-            4 )
-                # Black & white mode
+                    # Generate unfosed colors
+                    local unf_blk="$( lamp.mode4_unfocus_color "${fcs_colors[0]}" )"
+                    local unf_gry="$( lamp.mode4_unfocus_color "${fcs_colors[1]}" )"
+                    local unf_red="$( lamp.mode4_unfocus_color "${fcs_colors[2]}" )"
+                    local unf_grn="$( lamp.mode4_unfocus_color "${fcs_colors[3]}" )"
+                    local unf_blu="$( lamp.mode4_unfocus_color "${fcs_colors[4]}" )"
+                    local unf_wht="$( lamp.mode4_unfocus_color "${fcs_colors[5]}" )"
 
-                local colors=( $( art-api.get_colors ) )
-                
-                local sequences=$( setters.sequences ${colors[@]} )
+                    unf_colors=( "$unf_blk" "$unf_gry" "$unf_red" "$unf_grn" "$unf_blu" "$unf_wht" )
+                ;;
+                * )
+                    log.error "lamp" "Please choose a correct mode number. MODE = $mode"
+                ;;
+            esac
 
-                printf "%b" "$sequences" > $focused_dev_pts &
+            lamp.gen_cach_file
+        else
+            lamp.read_colors
+        fi
+            
+        # Update the focused terminals
+        local sequences="$( printf "\\033]10;${fcs_colors[5]}\\007\\033]11;${fcs_colors[0]}\\007\\033]12;${fcs_colors[5]}\\007\\033]13;${fcs_colors[5]}\\007\\033]14;${fcs_colors[0]}\\007\\033]708;${fcs_colors[0]}\\007\\033]4;0;${fcs_colors[0]}\\007\\033]4;8;${fcs_colors[1]}\\007\\033]4;1;${fcs_colors[2]}\\007\\033]4;5;${fcs_colors[2]}\\007\\033]4;9;${fcs_colors[2]}\\007\\033]4;13;${fcs_colors[2]}\\007\\033]4;2;${fcs_colors[3]}\\007\\033]4;3;${fcs_colors[3]}\\007\\033]4;10;${fcs_colors[3]}\\007\\033]4;11;${fcs_colors[3]}\\007\\033]4;4;${fcs_colors[4]}\\007\\033]4;6;${fcs_colors[4]}\\007\\033]4;12;${fcs_colors[4]}\\007\\033]4;14;${fcs_colors[4]}\\007\\033]4;7;${fcs_colors[5]}\\007\\033]4;15;${fcs_colors[5]}\\007\\033]4;66;${fcs_colors[0]}\\007" )"
+        printf '%b' "$sequences" > "$focused_dev_pts" &
 
-                # Generate unfosed colors
-                local blk=$( lamp.mode4_unfocus_color "${colors[0]}" )
-                local gry=$( lamp.mode4_unfocus_color "${colors[1]}" )
-                local red=$( lamp.mode4_unfocus_color "${colors[2]}" )
-                local grn=$( lamp.mode4_unfocus_color "${colors[3]}" )
-                local blu=$( lamp.mode4_unfocus_color "${colors[4]}" )
-                local wht=$( lamp.mode4_unfocus_color "${colors[5]}" )
-                
-                # Update unfocused terminals
-                sequences=$( setters.sequences "$blk" "$gry" "$red" "$grn" "$blu" "$wht" )
-
-                lamp.update_terminals "$focused_dev_pts" "$sequences"
-            ;;
-        esac
+        # Update unfocused terminals
+        sequences="$( printf "\\033]10;${unf_colors[5]}\\007\\033]11;${unf_colors[0]}\\007\\033]12;${unf_colors[5]}\\007\\033]13;${unf_colors[5]}\\007\\033]14;${unf_colors[0]}\\007\\033]708;${unf_colors[0]}\\007\\033]4;0;${unf_colors[0]}\\007\\033]4;8;${unf_colors[1]}\\007\\033]4;1;${unf_colors[2]}\\007\\033]4;5;${unf_colors[2]}\\007\\033]4;9;${unf_colors[2]}\\007\\033]4;13;${unf_colors[2]}\\007\\033]4;2;${unf_colors[3]}\\007\\033]4;3;${unf_colors[3]}\\007\\033]4;10;${unf_colors[3]}\\007\\033]4;11;${unf_colors[3]}\\007\\033]4;4;${unf_colors[4]}\\007\\033]4;6;${unf_colors[4]}\\007\\033]4;12;${unf_colors[4]}\\007\\033]4;14;${unf_colors[4]}\\007\\033]4;7;${unf_colors[5]}\\007\\033]4;15;${unf_colors[5]}\\007\\033]4;66;${unf_colors[0]}\\007" )"
+        lamp.update_unfocused_terminals "$focused_dev_pts" "$sequences"
     fi
 }
 
