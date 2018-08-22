@@ -1,17 +1,21 @@
-# lamp
+![lamp](previews/lamp.png)
+
+# Description
 
 `lamp` is a very simple deamon-less terminal effect manager. The main goal of this script is to push the potential of `art` even further by using it's api and taking the window focus to another level. There are different modes available, which are quite unique in there own way. If you have some ideas for a new mode, open an issue and let me know !
 
-## How to install ?
+**NOTE:** The top image is using 3 modes at the same time !
 
-### Dependencies
+# How to install ?
+
+## Dependencies
 
 - `art`: used to process everything including colors
 - `xdotool`: used to get the name of the focused window
 
-### Insctructions
+## Insctructions
 
-#### .bashrc
+### .bashrc
 
 Add this lines to your `.bashrc` (or any other shell run commands file):
 
@@ -21,7 +25,7 @@ PROMPT_COMMAND='echo -en "\033]0;$(tty)\007"'
 DISABLE_AUTO_TITLE=true
 ```
 
-#### lamp
+### lamp
 
 Add `lamp` to your `PATH`:
 
@@ -32,7 +36,7 @@ cd lamp
 echo "PATH="${PATH}:$( pwd )" >> ${HOME}/.bashrc
 ```
 
-#### Window Manager
+### Window Manager
 
 Now the hardest part, `lamp` **is deamon-less**, which means it has to be ran each time a new window is being focused.
 
@@ -54,7 +58,7 @@ I had a situation like that with `2bwm`, which focuses every window that happens
 
 I understand that this may not be practical for everybody but there is no other way without a deamon.
 
-## How to use ?
+# How to use ?
 
 ```
 lamp - A deamon-less terminal effect manager
@@ -67,49 +71,49 @@ Arguments:
 -m | -modes "number"    Set a different mode or modes to load
 ```
 
-## TODO
+# TODO
 
 - Add more options
 - Find a better way to determined which terminal is being focused
 
-## Previews
+# Previews
 
-### Hightlight (mode 1)
+## Hightlight (mode 1)
 
-#### Dark version
+### Dark version
 
 ![mode1_dark](previews/mode1/dark.png)
 
-#### Light version
+### Light version
 
 ![mode1_light](previews/mode1/light.png)
 
-### Yin Yang (mode 2)
+## Yin Yang (mode 2)
 
-#### Dark version
+### Dark version
 
 ![mode2_dark](previews/mode2/dark.png)
 
-#### Light version
+### Light version
 
 ![mode2_light](previews/mode2/light.png)
 
-### Stealth (mode 3)
+## Stealth (mode 3)
 
-#### Dark version
+### Dark version
 
 ![mode3_dark](previews/mode3/dark.png)
 
-#### Light version
+### Light version
 
 ![mode3_light](previews/mode3/light.png)
 
-### Black and white (mode 4)
+## Black and white (mode 4)
 
-#### Dark version
+### Dark version
 
 ![mode4_dark](previews/mode4/dark.png)
 
-#### Light version
+### Light version
 
 ![mode4_light](previews/mode4/light.png)
