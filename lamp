@@ -14,7 +14,7 @@
 # TODO
 # ---
 #
-# - Add more options
+# - Add more modes
 # - Find a better way to determined which terminal is being focused
 
 # ---
@@ -55,13 +55,10 @@ lamp.arguments() {
     while [[ $i != $nb_args ]]
     do
         case "${args[$i]}" in
-            "-m" | "-modes" )
-                # Choose the mode or modes to load
+            "-f" | "-force" )
+                # Force the refresh of the cache
 
-                (( i++ ))
-                checkers.is_argument_s_value "${args[$i]}" || log.error "lamp" "Please provide correct values to arguments."
-
-                modes="${args[$i]}"
+                refresh=true
             ;;
             "-h" | "-help" )
                 # Display a helping text and exit
@@ -72,10 +69,19 @@ lamp.arguments() {
 
                 printf '%s\n'     "Arguments:"
                 printf '%s\n'     "(none)                  Launch lamp"
+                printf '%s\n'     "-f | -force             Force the refresh of the cache"
                 printf '%s\n'     "-h | -help              Display this menu and exit"
                 printf '%s\n\n'   "-m | -modes \"number\"    Set a different mode or modes to load"
 
                 exit 0
+            ;;
+            "-m" | "-modes" )
+                # Choose the mode or modes to load
+
+                (( i++ ))
+                checkers.is_argument_s_value "${args[$i]}" || log.error "lamp" "Please provide correct values to arguments."
+
+                modes="${args[$i]}"
             ;;
             * )
                 # Display an error on invalid arguments
