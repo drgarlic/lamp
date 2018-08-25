@@ -170,7 +170,7 @@ lamp.main() {
     # Check if the focused window is a terminal
     local focused_window="$( xdotool getwindowfocus getwindowname )"
 
-    if [[ -n "$focused_window" ]]
+    if [[ -n "$focused_window" && "$focused_window" == "/dev/pts/"* ]]
     then
         lamp.arguments
 
