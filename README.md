@@ -67,13 +67,14 @@ Example: lamp -m "4+2+1"
 
 Arguments:
 (none)                  Launch lamp
+-f | -force             Force the refresh of the cache
 -h | -help              Display this menu and exit
 -m | -modes "number"    Set a different mode or modes to load
 ```
 
 # TODO
 
-- Add more options
+- Add more modes
 - Find a better way to determined which terminal is being focused
 
 # Previews
