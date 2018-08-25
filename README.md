@@ -48,6 +48,8 @@ So the idea is to change the configuration file of your WM and make it run `lamp
 - focus a window
 - change the workspace
 
+One advantage is that you don't need to configure the colors of your terminal after that, **they will automatically update themselves.**
+
 Here are examples, which illustrates how it can be done for:
 - [2bwm](https://github.com/gawlk/dots/blob/master/2bwm/config.h)
 - [Bspwm](https://github.com/gawlk/dots/blob/master/sxhkd/sxhkdrc)
