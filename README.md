@@ -33,7 +33,7 @@ Add `lamp` to your `PATH`:
 cd WHEREVER_YOU_WANT
 git clone https://github.com/gawlk/lamp.git
 cd lamp
-echo "PATH="${PATH}:$( pwd )" >> ${HOME}/.bashrc
+echo "PATH="${PATH}:$( pwd )"" >> ${HOME}/.bashrc
 ```
 
 ### Window Manager
