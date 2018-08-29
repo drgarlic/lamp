@@ -15,7 +15,7 @@
 
 ## Insctructions
 
-### .bashrc
+### Bash
 
 Add this lines to your `.bashrc` (or any other shell run commands file):
 
@@ -25,7 +25,7 @@ PROMPT_COMMAND='echo -en "\033]0;$(tty)\007"'
 DISABLE_AUTO_TITLE=true
 ```
 
-### lamp
+### Installation
 
 Add `lamp` to your `PATH`:
 
