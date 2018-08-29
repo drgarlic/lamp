@@ -43,16 +43,20 @@ Now the hardest part, `lamp` **is deamon-less**, which means it has to be ran ea
 Some may disagree but it was a clear choice from the start, feel free to make a deamon if want to !
 
 So the idea is to change the configuration file of your WM and make it run `lamp` everytime you:
-- open a terminal
 - kill a window
 - focus a window
 - change the workspace
+- open a terminal
+
+Basically, you just need to do something like that: `ACTION && lamp`. 
+
+**NOTE:** it's very likely that `lamp` doesn't launch properly after opening a terminal but don't worry there is a fix for that. Just instead of `TERMINAL && lamp`, change it to `lamp -t TERMINAL`.
 
 One advantage is that you don't need to configure the colors of your terminal after that, **they will automatically update themselves.**
 
 Here are examples, which illustrates how it can be done for:
 - [2bwm](https://github.com/gawlk/dots/blob/master/2bwm/config.h)
-- [Bspwm](https://github.com/gawlk/dots/blob/master/sxhkd/sxhkdrc)
+- [bspwm](https://github.com/gawlk/dots/blob/master/sxhkd/sxhkdrc)
 
 Unfortunately, if your WM supports mouse events and you can't or don't want to disable them, you might have undesired results like not having `lamp` launched when a window is being focused.
 
@@ -60,10 +64,21 @@ I had a situation like that with `2bwm`, which focuses every window that happens
 
 I understand that this may not be practical for everybody but there is no other way without a deamon.
 
+### Tmux (optional)
+
+If you are a `tmux` user, you need to add those lines to your `tmux.conf`:
+
+```
+set -g set-titles off
+set -g allow-rename off
+```
+
+**NOTE:** This fix does not work when `tmux` is launched directly in your `.bashrc`. I'm still looking for a solution.
+
 # How to use ?
 
 ```
-lamp - A deamon-less terminal effect manager
+lamp - A daemon-less terminal focus manager
 
 Example: lamp -m "4+2+1"
 
@@ -72,6 +87,7 @@ Arguments:
 -f | -force             Force the refresh of the cache
 -h | -help              Display this menu and exit
 -m | -modes "number"    Set a different mode or modes to load
+-t | -terminal "name"   Fix for terminal launch 
 ```
 
 # TODO
