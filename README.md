@@ -2,7 +2,7 @@
 
 # Description
 
-`lamp` is a very simple daemon-less terminal focus manager. The main goal of this script is to reinvent the focus of your terminals. Few modes are available, each with it's own feature, which can be combined to offer a very unique look. I made this script because I was tired of borders, which don't honestly offer a lot of possibilities and compositors, which are either heavy or rough. For now, `lamp` is only functionnal with `art` installed and configured. I'll probably support other theme managers in the future. Oh and if you have some ideas for a new mode, open an issue and let me know !
+`lamp` is a very simple daemon-less terminal focus manager. The main goal of this script is to reinvent the focus of your terminals. Few modes are available, each with it's own feature, which can be combined to offer a very unique look. I made this script because I was tired of borders, which don't honestly offer a lot of possibilities and compositors, which are either heavy or rough but especially because I wanted something that made ricing fun again. For now, `lamp` is only functionnal with `art` installed and configured. I'll probably support other theme managers in the future. Oh and if you have some ideas for a new mode, open an issue and let me know !
 
 **NOTE:** The top image is using 3 modes at the same time !
 
