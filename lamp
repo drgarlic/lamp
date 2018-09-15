@@ -31,13 +31,14 @@
 LC_ALL=C
 LANG=C
 
+# Global variables
+
 # Get all arguments
 args=( $@ )
 
 # Get the number of arguments
 nb_args="$#"
 
-# Global variables
 refresh=false
 cach_file="${cnf_dir}/.lamp.cache"
 modes=""
@@ -186,6 +187,8 @@ lamp.update_unfocused_terminals() {
 
 lamp.main() {
     lamp.arguments
+
+    lamp.read_colors
     
     # Check if the focused window is a terminal
     local focused_window="$( xdotool getwindowfocus getwindowname )"
@@ -269,15 +272,13 @@ lamp.main() {
             done
             
             lamp.gen_cach_file
-        else
-            lamp.read_colors
         fi
             
         # Update the focused terminals
         local sequences="$( printf "\\033]10;${fcs_colors[5]}\\033\\\\\\033]11;${fcs_colors[0]}\\033\\\\\\033]12;${fcs_colors[5]}\\033\\\\\\033]13;${fcs_colors[5]}\\033\\\\\\033]17;${fcs_colors[5]}\\033\\\\\\033]19;${fcs_colors[0]}\\033\\\\\\033]708;${fcs_colors[0]}\\033\\\\\\033]4;0;${fcs_colors[0]}\\033\\\\\\033]4;8;${fcs_colors[1]}\\033\\\\\\033]4;1;${fcs_colors[2]}\\033\\\\\\033]4;5;${fcs_colors[2]}\\033\\\\\\033]4;9;${fcs_colors[2]}\\033\\\\\\033]4;13;${fcs_colors[2]}\\033\\\\\\033]4;2;${fcs_colors[3]}\\033\\\\\\033]4;3;${fcs_colors[3]}\\033\\\\\\033]4;10;${fcs_colors[3]}\\033\\\\\\033]4;11;${fcs_colors[3]}\\033\\\\\\033]4;4;${fcs_colors[4]}\\033\\\\\\033]4;6;${fcs_colors[4]}\\033\\\\\\033]4;12;${fcs_colors[4]}\\033\\\\\\033]4;14;${fcs_colors[4]}\\033\\\\\\033]4;7;${fcs_colors[5]}\\033\\\\\\033]4;15;${fcs_colors[5]}\\033\\\\\\033]4;232;${fcs_colors[0]}\\033\\\\\\033]4;256;${fcs_colors[5]}\\033\\\\" )"
         printf '%b' "$sequences" > "$focused_window" &
     fi
-        
+
     # Update unfocused terminals
     local sequences="$( printf "\\033]10;${unf_colors[5]}\\033\\\\\\033]11;${unf_colors[0]}\\033\\\\\\033]12;${unf_colors[5]}\\033\\\\\\033]13;${unf_colors[5]}\\033\\\\\\033]17;${unf_colors[5]}\\033\\\\\\033]19;${unf_colors[0]}\\033\\\\\\033]708;${unf_colors[0]}\\033\\\\\\033]4;0;${unf_colors[0]}\\033\\\\\\033]4;8;${unf_colors[1]}\\033\\\\\\033]4;1;${unf_colors[2]}\\033\\\\\\033]4;5;${unf_colors[2]}\\033\\\\\\033]4;9;${unf_colors[2]}\\033\\\\\\033]4;13;${unf_colors[2]}\\033\\\\\\033]4;2;${unf_colors[3]}\\033\\\\\\033]4;3;${unf_colors[3]}\\033\\\\\\033]4;10;${unf_colors[3]}\\033\\\\\\033]4;11;${unf_colors[3]}\\033\\\\\\033]4;4;${unf_colors[4]}\\033\\\\\\033]4;6;${unf_colors[4]}\\033\\\\\\033]4;12;${unf_colors[4]}\\033\\\\\\033]4;14;${unf_colors[4]}\\033\\\\\\033]4;7;${unf_colors[5]}\\033\\\\\\033]4;15;${unf_colors[5]}\\033\\\\\\033]4;232;${unf_colors[0]}\\033\\\\\\033]4;256;${unf_colors[5]}\\033\\\\" )"
     lamp.update_unfocused_terminals "$focused_window" "$sequences"
