@@ -2,10 +2,10 @@
 #
 #   \|/   '||     ^   ||\/| ||''.
 #  - o -   ||    //\  ||  | ||--'
-#   /|\   .||_| //''\ ||  | ||
+#   /|\    ||_| //''\ ||  | ||
 #
-# Description:              A deamon-less terminal effect manager
-# Dependencies:             art, xdotool
+# Description:              A terminal focus manager
+# Dependencies:             art, pin, xdotool
 # Optionnal dependencies:   none
 # Author:                   gawlk
 # Contributors:             none
@@ -18,7 +18,7 @@
 # - Find a better way to determined which terminal is being focused
 
 # ---
-# IMPORTS
+# IMPORT
 # ---
 
 . art-api
@@ -31,7 +31,9 @@
 LC_ALL=C
 LANG=C
 
-# Global variables
+# ---
+# VARIABLES
+# ---
 
 # Get all arguments
 args=( $@ )
@@ -81,7 +83,7 @@ lamp.arguments() {
                 # Choose the mode or modes to load
 
                 (( i++ ))
-                checkers.is_argument_s_value "${args[$i]}" || log.error "lamp" "Please provide correct values to arguments."
+                checkers.is_argument_s_value "${args[$i]}" || pin.error "lamp" "Please provide correct values to arguments."
 
                 modes="${args[$i]}"
             ;;
@@ -89,7 +91,7 @@ lamp.arguments() {
                 # Fix for terminal launch
 
                 (( i++ ))
-                checkers.is_argument_s_value "${args[$i]}" || log.error "lamp" "Please provide correct values to arguments."
+                checkers.is_argument_s_value "${args[$i]}" || pin.error "lamp" "Please provide correct values to arguments."
 
                 local term="${args[$i]}"
                 "$term" &
@@ -99,7 +101,7 @@ lamp.arguments() {
             * )
                 # Display an error on invalid arguments
 
-                log.error "lamp" "Invalid argument, please try again\n$( lamp -h )"
+                pin.error "lamp" "Invalid argument, please try again.\n$( lamp -h )"
             ;;
         esac
 
@@ -165,9 +167,9 @@ lamp.read_conf() {
     local old_brightness="$( initiators.read_line "$cach_file" "brightness" )"
 
     local theme="$( art-api.get_theme )"
-    [[ -z "$theme" ]] && log.error "lamp" "Invalid theme in art's configuration file."
+    [[ -z "$theme" ]] && pin.error "lamp" "Invalid theme in art's configuration file."
     local brightness="$( art-api.get_brightness )"
-    [[ -z "$brightness" ]] && log.error "lamp" "Invalid brightness in art's configuration file."
+    [[ -z "$brightness" ]] && pin.error "lamp" "Invalid brightness in art's configuration file."
 
     [[ -n "$modes" || "$theme" != "$old_theme" || "$brightness" != "$old_brightness" ]] && refresh=true
 
@@ -222,17 +224,13 @@ lamp.main() {
                     "1" )
                         # Highlight mode
 
-                        # Generate unfocused colors
                         local value=200
-                        local unf_blk="${unf_colors[0]}"
-                        local unf_gry="$( lamp.mode1_unfocus_color "${unf_colors[1]}" "$value" "$brightness" )"
-                        local unf_red="$( lamp.mode1_unfocus_color "${unf_colors[2]}" "$value" "$brightness" )"
-                        local unf_grn="$( lamp.mode1_unfocus_color "${unf_colors[3]}" "$value" "$brightness" )"
-                        local unf_blu="$( lamp.mode1_unfocus_color "${unf_colors[4]}" "$value" "$brightness" )"
-                        (( value *= 2 ))
-                        local unf_wht="$( lamp.mode1_unfocus_color "${unf_colors[5]}" "$value" "$brightness" )"
 
-                        unf_colors=( "$unf_blk" "$unf_gry" "$unf_red" "$unf_grn" "$unf_blu" "$unf_wht" )
+                        for i in {1..5}
+                        do
+                            [[ $i == 5 ]] && (( value *= 2 ))
+                            unf_colors[$i]="$( lamp.mode1_unfocus_color "${unf_colors[$i]}" "$value" "$brightness" )"
+                        done
                     ;;
                     "2" )
                         # Yin yang mode
@@ -253,18 +251,13 @@ lamp.main() {
                     "4" )
                         # Black & white mode
 
-                        # Generate unfosed colors
-                        local unf_blk="$( lamp.mode4_unfocus_color "${unf_colors[0]}" )"
-                        local unf_gry="$( lamp.mode4_unfocus_color "${unf_colors[1]}" )"
-                        local unf_red="$( lamp.mode4_unfocus_color "${unf_colors[2]}" )"
-                        local unf_grn="$( lamp.mode4_unfocus_color "${unf_colors[3]}" )"
-                        local unf_blu="$( lamp.mode4_unfocus_color "${unf_colors[4]}" )"
-                        local unf_wht="$( lamp.mode4_unfocus_color "${unf_colors[5]}" )"
-
-                        unf_colors=( "$unf_blk" "$unf_gry" "$unf_red" "$unf_grn" "$unf_blu" "$unf_wht" )
+                        for i in {0..5}
+                        do
+                            unf_colors[$i]="$( lamp.mode4_unfocus_color "${unf_colors[$i]}" )"
+                        done
                     ;;
                     * )
-                        log.error "lamp" "Please choose a correct mode number."
+                        pin.error "lamp" "Please choose a correct mode number."
                     ;;
                 esac
 
@@ -289,4 +282,3 @@ lamp.main() {
 # ---
 
 lamp.main
-
