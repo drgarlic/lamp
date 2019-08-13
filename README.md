@@ -101,38 +101,38 @@ Arguments:
 
 ### Dark version
 
-![mode1_dark](documents/images/previews/mode1/dark.png)
+![mode1_dark](previews/mode1/dark.png)
 
 ### Light version
 
-![mode1_light](documents/images/previews/mode1/light.png)
+![mode1_light](previews/mode1/light.png)
 
 ## Yin Yang (mode 2)
 
 ### Dark version
 
-![mode2_dark](documents/images/previews/mode2/dark.png)
+![mode2_dark](previews/mode2/dark.png)
 
 ### Light version
 
-![mode2_light](documents/images/previews/mode2/light.png)
+![mode2_light](previews/mode2/light.png)
 
 ## Stealth (mode 3)
 
 ### Dark version
 
-![mode3_dark](documents/images/previews/mode3/dark.png)
+![mode3_dark](previews/mode3/dark.png)
 
 ### Light version
 
-![mode3_light](documents/images/previews/mode3/light.png)
+![mode3_light](previews/mode3/light.png)
 
 ## Black and white (mode 4)
 
 ### Dark version
 
-![mode4_dark](documents/images/previews/mode4/dark.png)
+![mode4_dark](previews/mode4/dark.png)
 
 ### Light version
 
-![mode4_light](documents/images/previews/mode4/light.png)
+![mode4_light](previews/mode4/light.png)
